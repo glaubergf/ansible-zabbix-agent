@@ -1,0 +1,24 @@
+---
+# --- server rockylinux (tf-kvm-elk)
+elk_public_ip : 192.100.20.200
+elk_ansible_user : elk
+elk_ansible_password : xxxxxxxxx
+elk_ansible_become_password : xxxxxxxxx
+
+# --- client debian (sup)
+sup_public_ip : 192.100.10.150
+sup_ansible_user : mcnd2
+sup_ansible_password : xxxxxxxxx
+sup_ansible_become_password : xxxxxxxxx
+
+# --- client opensuse (opensuse)
+opensuse_public_ip : 192.100.10.206
+opensuse_ansible_user : mcnd2
+opensuse_ansible_password : xxxxxxxxx
+opensuse_ansible_become_password : xxxxxxxxx
+
+# --- client debian (cockpit)
+cockpit_public_ip : 192.100.20.100
+cockpit_ansible_user : cockpit
+cockpit_ansible_password : xxxxxxxxx
+cockpit_ansible_become_password : xxxxxxxxx

@@ -1,0 +1,111 @@
+---
+- name: Instalando pacote "Zabbix Agent" nos clientes (Debian, RedHat, Suse)
+  ansible.builtin.package:
+    name: "{{ zabbix_package_name }}"
+    state: present
+  loop:
+    - "{{ zabbix_package_name }}"
+  vars:
+    zabbix_package_name: "{{ ansible_os_family == 'Debian' and 'zabbix-agent' or (ansible_os_family == 'Suse' and ansible_distribution == 'RedHat' and 'zabbix-agent' or 'zabbix-agent') }}"
+  tags: zbx-agt
+
+- name: Criar arquivo de configuração do Zabbix Agent (Debian)
+  ansible.builtin.template:
+    src: /home/mcnd2/Projetos/ansible-zabbix-agent/roles/zabbix-agent-linux/template/zabbix_agentd.conf.j2
+    dest: /etc/zabbix/zabbix_agentd.conf
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Atualizando linha "Server" no arquivo "zabbix_agentd.conf" (Debian, RedHat, Suse)
+  ansible.builtin.lineinfile:
+    path: "{{ path_zabbix_agentd_values[ansible_facts['os_family']] }}"
+    regexp: '^Server='
+    line: 'Server={{ server_values[ansible_facts["os_family"]][inventory_hostname] }}'
+  tags: zbx-agt
+
+- name: Atualizando linha "ServerActive" no arquivo "zabbix_agentd.conf" (Debian, RedHat, Suse)
+  ansible.builtin.lineinfile:
+    path: "{{ path_zabbix_agentd_values[ansible_facts['os_family']] }}"
+    regexp: '^ServerActive='
+    line: 'ServerActive={{ serveractive_values[ansible_facts["os_family"]][inventory_hostname] }}'
+  tags: zbx-agt
+
+- name: Atualizando linha "Hostname" no arquivo "zabbix_agentd.conf" (Debian, RedHat, Suse)
+  ansible.builtin.lineinfile:
+    path: "{{ path_zabbix_agentd_values[ansible_facts['os_family']] }}"
+    regexp: '^(#?\s*Hostname\s*=\s*)(.*)$'
+    line: 'Hostname={{ hostname_values[ansible_facts["os_family"]][inventory_hostname] }}'
+    backrefs: yes
+  tags: zbx-agt
+
+- name: Verificando se o serviço "Zabbix Agent" está ativo (Debian, RedHat, Suse)
+  ansible.builtin.service:
+    name: "{{ zabbix_agent_service_name_values[ansible_facts['os_family']] }}"
+    state: started
+  register: service_status
+  tags: zbx-agt
+
+- name: Habilitando o serviço "Zabbix Agent" (Debian, RedHat, Suse)
+  ansible.builtin.systemd:
+    name: "{{ zabbix_agent_service_name_values[ansible_facts['os_family']] }}"
+    enabled: yes
+  tags: zbx-agt
+
+- name: Recarregando o serviço "Zabbix Agent" (Debian, RedHat, Suse)
+  ansible.builtin.service:
+    name: "{{ zabbix_agent_service_name_values[ansible_facts['os_family']] }}"
+    state: restarted
+  #when: service_status.changed
+  tags: zbx-agt
+
+- name: Instalando iptables-persistent (Debian)
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Permitindo tráfego na porta "TCP 10050" do zabbix-server no iptables (Debian)
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ firewalld_port_zbx_srv_values[ansible_facts['os_family']] }}"
+    jump: ACCEPT
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Criando diretório /etc/iptables se não existir (Debian)
+  ansible.builtin.file:
+    path: /etc/iptables
+    state: directory
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Salvando as regras do iptables (Debian)
+  ansible.builtin.shell:
+    cmd: iptables-save > /etc/iptables/rules.v4
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Reiniciando o iptables para aplicar as regras (Debian)
+  ansible.builtin.shell:
+    cmd: iptables-restore < /etc/iptables/rules.v4
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt
+
+- name: Permitindo tráfego na porta "TCP 10050" do zabbix-server no Firewalld (RedHat, Suse)
+  ansible.posix.firewalld:
+    port: "{{ firewalld_port_zbx_srv_values[ansible_facts['os_family']] }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts['os_family'] in ['RedHat', 'Suse']
+  tags: zbx-agt
+
+- name: Recarregando o Firewalld (RedHat, Suse)
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  when: ansible_facts['os_family'] in ['RedHat', 'Suse']
+  tags: zbx-agt

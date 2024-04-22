@@ -1,0 +1,46 @@
+---
+# vars file for roles/zabbix-agent-linux
+# /etc/zabbix/zabbix_agentd.conf in Debian and openSUSE
+# /etc/zabbix_agentd.conf in RockyLinux
+
+server_values:
+  Debian:
+    sup: "192.100.20.10,192.100.10.1"
+    tf-kvm-cockpit: "192.100.20.10,192.100.20.1"
+  Suse:
+    opensuse: "192.100.20.10,192.100.10.1"
+  RedHat:
+    tf-kvm-elk: "192.100.20.10,192.100.20.1"
+
+serveractive_values:
+  Debian:
+    sup: "192.100.20.10,192.100.10.1"
+    tf-kvm-cockpit: "192.100.20.10,192.100.20.1"
+  Suse:
+    opensuse: "192.100.20.10,192.100.10.1"
+  RedHat:
+    tf-kvm-elk: "192.100.20.10,192.100.20.1"
+
+hostname_values:
+  Debian:
+    sup: "kvm - debian -lab_sup"
+    tf-kvm-cockpit: "kvm - tf-kvm-cockpit"
+  Suse:
+    opensuse: "kvm - opensuse"
+  RedHat:
+    tf-kvm-elk: "kvm - tf-kvm-elk"
+
+path_zabbix_agentd_values:
+  Debian: "/etc/zabbix/zabbix_agentd.conf"
+  Suse: "/etc/zabbix/zabbix_agentd.conf"
+  RedHat: "/etc/zabbix_agentd.conf"
+
+zabbix_agent_service_name_values:
+  Debian: "zabbix-agent"
+  Suse: "zabbix_agentd"
+  RedHat: "zabbix-agent"
+
+firewalld_port_zbx_srv_values:
+  Debian: "zabbix-agent"
+  Suse: "10050/tcp"
+  RedHat: "10050/tcp"

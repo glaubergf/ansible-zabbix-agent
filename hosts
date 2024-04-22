@@ -1,0 +1,42 @@
+# --- HOSTS --- #
+# --- server rockylinux (tf-kvm-elk)
+[elk_zabbix_agent]
+tf-kvm-elk ansible_host="{{ elk_public_ip }}"
+
+# --- client debian (sup)
+[sup_zabbix_agent]
+sup ansible_host="{{ sup_public_ip }}"
+
+# --- client opensuse (opensuse)
+[opensuse_zabbix_agent]
+opensuse ansible_host="{{ opensuse_public_ip }}"
+
+# --- client debian (cockpit)
+[cockpit_zabbix_agent]
+tf-kvm-cockpit ansible_host="{{ cockpit_public_ip }}"
+
+
+# --- VARIABLES --- #
+# --- server rockylinux (tf-kvm-elk)
+[elk_zabbix_agent:vars]
+ansible_user = "{{ elk_ansible_user }}" 
+ansible_password = "{{ elk_ansible_password }}"
+ansible_become_password = "{{ elk_ansible_become_password }}"
+
+# --- client Debian (sup)
+[sup_zabbix_agent:vars]
+ansible_user = "{{ sup_ansible_user }}" 
+ansible_password = "{{ sup_ansible_password }}"
+ansible_become_password = "{{ sup_ansible_become_password }}"
+
+# --- client opensuse (opensuse)
+[opensuse_zabbix_agent:vars]
+ansible_user = "{{ opensuse_ansible_user }}" 
+ansible_password = "{{ opensuse_ansible_password }}"
+ansible_become_password = "{{ opensuse_ansible_become_password }}"
+
+# --- client debian (cockpit)
+[cockpit_zabbix_agent:vars]
+ansible_user = "{{ cockpit_ansible_user }}" 
+ansible_password = "{{ cockpit_ansible_password }}"
+ansible_become_password = "{{ cockpit_ansible_become_password }}"

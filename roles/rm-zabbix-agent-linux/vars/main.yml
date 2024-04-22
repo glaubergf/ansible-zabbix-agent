@@ -1,0 +1,19 @@
+---
+# vars file for roles/rm-zabbix-agent-linux
+# /etc/zabbix/zabbix_agentd.conf in Debian and openSUSE
+# /etc/zabbix_agentd.conf in RockyLinux
+
+path_zabbix_agentd_values:
+  Debian: "/etc/zabbix/zabbix_agentd.conf"
+  Suse: "/etc/zabbix/zabbix_agentd.conf"
+  RedHat: "/etc/zabbix_agentd.conf"
+
+zabbix_agent_service_name_values:
+  Debian: "zabbix-agent"
+  Suse: "zabbix_agentd"
+  RedHat: "zabbix-agent"
+
+firewalld_port_zbx_srv_values:
+  Debian: "zabbix-agent"
+  Suse: "10050/tcp"
+  RedHat: "10050/tcp"

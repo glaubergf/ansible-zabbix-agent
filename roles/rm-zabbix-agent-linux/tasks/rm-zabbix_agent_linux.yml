@@ -1,0 +1,50 @@
+---
+- name: Debugging distribution and os_family
+  ansible.builtin.debug:
+    msg: "distribution: {{ ansible_distribution }}, os_family: {{ os_family }}"
+  vars:
+    os_family: >-
+      {{
+        'Debian' if ansible_distribution in ['Debian', 'Ubuntu'] else
+        'RedHat' if ansible_distribution in ['RedHat', 'CentOS', 'Fedora', 'Rocky Linux', 'Rocky'] else
+        'Suse' if ansible_distribution in ['SUSE Linux Enterprise Server', 'openSUSE Leap', 'openSUSE'] else
+        'Unknown'
+      }}
+  tags: zbx-agt-rm
+
+- name: Removendo pacote "Zabbix Agent" nos clientes
+  ansible.builtin.package:
+    name: "{{ zabbix_package_name }}"
+    state: absent
+  loop:
+    - "{{ zabbix_package_name }}"
+  vars:
+    zabbix_package_name: "{{ ansible_os_family == 'Debian' and 'zabbix-agent' or (ansible_os_family == 'Suse' and ansible_distribution == 'RedHat' and 'zabbix-agent' or 'zabbix-agent') }}"
+  tags: zbx-agt-rm
+
+- name: Removendo arquivos de configuração do zabbix-agent
+  ansible.builtin.file:
+    path: "{{ path_zabbix_agentd_values[ansible_facts['os_family']] }}"
+    state: absent
+  loop:
+    - "{{ path_zabbix_agentd_values[ansible_facts['os_family']] }}"
+  tags: zbx-agt-rm
+
+- name: Removendo regra do iptables para tráfego na porta "TCP 10050"
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ firewalld_port_zbx_srv_values[ansible_facts['os_family']] }}"
+    jump: ACCEPT
+    state: absent
+  when: ansible_facts['os_family'] == "Debian"
+  tags: zbx-agt-rm
+
+- name: Removendo regra do Firewalld para tráfego na porta "TCP 10050"
+  ansible.posix.firewalld:
+    port: "{{ firewalld_port_zbx_srv_values[ansible_facts['os_family']] }}"
+    permanent: true
+    state: disabled
+    immediate: true
+  when: ansible_facts['os_family'] in ['RedHat', 'Suse']
+  tags: zbx-agt-rm
