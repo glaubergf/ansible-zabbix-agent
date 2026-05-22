@@ -193,7 +193,6 @@ ansible-zabbix-agent
         │   │   └── ufw.yml
         │   ├── firewall.yml
         │   ├── main.yml
-        │   ├── main.yml.BAK
         │   ├── os
         │   │   ├── debian.yml
         │   │   ├── redhat.yml
