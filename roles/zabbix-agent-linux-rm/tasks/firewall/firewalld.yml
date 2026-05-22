@@ -1,0 +1,15 @@
+---
+# ====================================================================================
+# FIREWALL - FIREWALLD
+# roles/zabbix-agent-linux-rm/tasks/firewall/firewalld.yml
+# ====================================================================================
+
+# Remove a porta 10050 do Firewalld, que é a porta padrão usada 
+# pelo Zabbix Agent para comunicação com o Zabbix Server.
+- name: FIREWALLD | Removendo porta 10050 do Firewalld
+  ansible.posix.firewalld:
+    port: "{{ zabbix_agent_port }}/tcp"
+    permanent: true
+    state: disabled
+    immediate: true
+  ignore_errors: true

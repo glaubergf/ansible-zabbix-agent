@@ -1,0 +1,37 @@
+---
+# ====================================================================================
+# CONFIGURAÇÃO
+# roles/zabbix-agent-linux-in/tasks/config.yml
+# ====================================================================================
+
+# Detecta configuração do zabbix agent
+- name: CONFIG | Detectando config do Zabbix Agent
+  ansible.builtin.set_fact:
+    zabbix_agent_config_file: >-
+      {{
+        '/etc/zabbix/zabbix_agent2.conf'
+        if zabbix_agent_package_detected == 'zabbix-agent2'
+        else '/etc/zabbix/zabbix_agentd.conf'
+      }}
+
+# Detecta binário do zabbix agent para uso em validação de configuração
+- name: CONFIG | Detectando binário do Zabbix Agent
+  ansible.builtin.set_fact:
+    zabbix_binary: >-
+      {{
+        '/usr/sbin/zabbix_agent2'
+        if zabbix_agent_package_detected == 'zabbix-agent2'
+        else '/usr/sbin/zabbix_agentd'
+      }}
+
+# Template de configuração do Zabbix Agent
+- name: CONFIG | Criando configuração do Zabbix Agent
+  ansible.builtin.template:
+    src: zabbix_agent.conf.j2
+    dest: "{{ zabbix_agent_config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify:
+    - HANDLER | Reiniciando zabbix agent

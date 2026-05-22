@@ -1,0 +1,27 @@
+---
+
+# ====================================================================================
+# FIREWALL - FIREWALLD
+# roles/zabbix-agent-linux-in/tasks/firewall/firewalld.yml
+# ====================================================================================
+
+# Instala firewalld.
+- name: FIREWALLD | Instalando firewalld
+  ansible.builtin.package:
+    name: firewalld
+    state: present
+
+# Habilita e inicia serviço.
+- name: FIREWALLD | Habilitando serviço
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+# Libera porta 10050.
+- name: FIREWALLD | Liberando porta 10050
+  ansible.posix.firewalld:
+    port: "{{ zabbix_agent_port }}/tcp"
+    permanent: true
+    immediate: true
+    state: enabled

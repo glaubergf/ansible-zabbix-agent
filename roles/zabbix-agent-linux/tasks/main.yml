@@ -1,3 +1,0 @@
----
-# tasks file for roles/zabbix-agent-linux
-- include: zabbix_agent_linux.yml

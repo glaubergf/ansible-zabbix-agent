@@ -1,0 +1,45 @@
+---
+# ====================================================================================
+# FIREWALL - UFW
+# roles/zabbix-agent-linux-rm/tasks/firewall/ufw.yml
+# ====================================================================================
+
+# Coleta as regras atuais do UFW para identificar quais regras estão associadas 
+# à porta do Zabbix Agent (10050) e registrar essas informações para uso posterior na 
+# remoção das regras.
+- name: UFW | Coletando regras UFW
+  ansible.builtin.command:
+    cmd: ufw status numbered
+  register: ufw_status
+  changed_when: false
+  check_mode: false
+
+# Extrai os números das regras do UFW que estão associadas à porta 10050, que é a 
+# porta padrão do Zabbix Agent. O resultado é uma lista de números de regras que correspondem
+# à porta do Zabbix Agent, que serão usadas para remover as regras posteriormente.
+- name: UFW | Extraindo regras da porta 10050
+  ansible.builtin.set_fact:
+    ufw_rule_numbers: >-
+      {{
+        ufw_status.stdout_lines
+        | select('contains', zabbix_agent_port)
+        | map('regex_replace', '^\[\s*([0-9]+)\].*$', '\1')
+        | list
+        | reverse
+      }}
+
+# Remove as regras do UFW associadas à porta do Zabbix Agent usando os números de 
+# regras extraídos na etapa anterior. O comando `ufw --force delete` é usado para garantir 
+# que as regras sejam removidas sem solicitar confirmação, e o loop itera sobre a lista de 
+# números de regras para remover cada uma delas. O resultado da remoção é registrado para 
+# verificar se as regras foram realmente removidas.
+- name: UFW | Removendo regras UFW
+  ansible.builtin.command:
+    cmd: ufw --force delete {{ item }}
+  loop: "{{ ufw_rule_numbers }}"
+  register: ufw_remove
+  changed_when:
+    - "'Rule deleted' in ufw_remove.stdout"
+  failed_when: false
+  when:
+    - ufw_rule_numbers | length > 0

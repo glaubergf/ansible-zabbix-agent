@@ -1,0 +1,19 @@
+---
+# ====================================================================================
+# VARIÁVEIS
+# roles/zabbix-agent-linux-in/vars/debian.yml
+#
+# - Este arquivo contém variáveis específicas para sistemas Debian, que são usadas durante 
+#   a instalação e configuração do Zabbix Agent.
+# - Ele define o nome do pacote do agente Zabbix, o caminho para o arquivo de configuração 
+#   do agente, o caminho para o arquivo de configuração do plugin Docker, o caminho para os 
+#   arquivos de configuração adicionais, o backend de firewall a ser usado e o nome do host 
+#   a ser registrado no Zabbix Server.
+# ==================================================================================== 
+
+zabbix_agent_package_name: zabbix-agent2
+zabbix_agent_config_file: /etc/zabbix/zabbix_agent2.conf
+zabbix_agent_docker_plugin_file: /etc/zabbix/zabbix_agent2.d/plugins.d/docker.conf
+zabbix_agent_include_path: /etc/zabbix/zabbix_agent2.d/*.conf
+zabbix_agent_firewall_backend: iptables
+zabbix_agent_hostname: "{{ zabbix_hostnames[inventory_hostname] | default(inventory_hostname) }}"

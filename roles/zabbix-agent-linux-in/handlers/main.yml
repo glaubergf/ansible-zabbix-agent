@@ -1,0 +1,20 @@
+---
+# ====================================================================================
+# HANDLERS
+# roles/zabbix-agent-linux-in/handlers/main.yml
+#
+# - Quando o arquivo de configuração do Zabbix Agent é modificado, 
+#   este handler é acionado para reiniciar o serviço do 
+#   Zabbix Agent para aplicar as alterações.
+# ====================================================================================
+
+# Reinicia o serviço do Zabbix Agent para aplicar as alterações na configuração.
+- name: HANDLER | Reiniciando zabbix agent
+  ansible.builtin.systemd:
+    name: "{{ zabbix_agent_service }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  when:
+    - zabbix_agent_config_validation is defined
+    - zabbix_agent_config_validation.rc == 0

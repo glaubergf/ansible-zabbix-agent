@@ -1,0 +1,14 @@
+---
+# ====================================================================================
+# REMOÇÃO
+# roles/zabbix-agent-linux-rm/tasks/remove.yml
+# ====================================================================================
+
+# Remove os pacotes do Zabbix Agent, garantindo que o software seja completamente 
+# desinstalado do sistema.
+- name: REMOVER | Removendo pacotes Zabbix Agent
+  ansible.builtin.package:
+    name:
+      - zabbix-agent
+      - zabbix-agent2
+    state: absent

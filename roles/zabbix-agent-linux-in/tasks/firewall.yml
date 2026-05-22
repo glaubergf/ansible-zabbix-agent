@@ -1,0 +1,65 @@
+---
+# ====================================================================================
+# FIREWALL
+# roles/zabbix-agent-linux-in/tasks/firewall.yml
+# ====================================================================================
+
+# Valida o backend de firewall detectado para garantir que seja um dos suportados 
+# (ufw, firewalld ou iptables) antes de tentar importar as tasks específicas do backend. 
+# Isso ajuda a evitar erros de execução caso o backend detectado seja desconhecido ou não 
+# suportado.
+- name: FIREWALL | Validando backend de firewall
+  ansible.builtin.assert:
+    that:
+      - firewall_backend in ['ufw', 'firewalld', 'iptables']
+    fail_msg: "Backend de firewall não suportado: {{ firewall_backend }}"
+    success_msg: "Backend detectado: {{ firewall_backend }}"
+  when:
+    - zabbix_agent_manage_firewall
+  tags:
+    - zbx-agt-in-iptables
+    - zbx-agt-in-firewalld
+    - zbx-agt-in-ufw
+    - zbx-agt-in-firewall
+
+# Inclui as tasks específicas do backend de firewall detectado para configurar as regras 
+# de firewall necessárias para o Zabbix Agent, garantindo que as regras sejam aplicadas 
+# corretamente de acordo com o firewall em uso no sistema.
+- name: FIREWALL | Incluindo regras para IPTables
+  ansible.builtin.include_tasks:
+    file: firewall/iptables.yml
+  when: 
+    - firewall_backend == "iptables"
+    - >
+      'all' in ansible_run_tags or
+      'zbx-agt-in-iptables' in ansible_run_tags or
+      'zbx-agt-in-firewall' in ansible_run_tags
+  tags:
+    - zbx-agt-in-iptables
+    - zbx-agt-in-firewall
+
+- name: FIREWALL | Incluindo regras para Firewalld
+  ansible.builtin.include_tasks:
+    file: firewall/firewalld.yml
+  when: 
+    - firewall_backend == "firewalld"
+    - >
+      'all' in ansible_run_tags or
+      'zbx-agt-in-firewalld' in ansible_run_tags or
+      'zbx-agt-in-firewall' in ansible_run_tags
+  tags:
+    - zbx-agt-in-firewalld
+    - zbx-agt-in-firewall
+
+- name: FIREWALL | Incluindo regras para UFW
+  ansible.builtin.include_tasks:
+    file: firewall/ufw.yml
+  when: 
+    - firewall_backend == "ufw"
+    - >
+      'all' in ansible_run_tags or
+      'zbx-agt-in-ufw' in ansible_run_tags or
+      'zbx-agt-in-firewall' in ansible_run_tags
+  tags:
+    - zbx-agt-in-ufw
+    - zbx-agt-in-firewall

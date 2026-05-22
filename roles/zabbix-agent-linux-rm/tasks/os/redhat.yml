@@ -1,0 +1,29 @@
+---
+# ====================================================================================
+# REDHAT - REMOÇÃO DO ZABBIX AGENT
+# roles/zabbix-agent-linux-rm/tasks/os/redhat.yml
+# ====================================================================================
+
+# Remove repositórios do Zabbix e Docker CE, garantindo que os arquivos de repositório 
+# relacionados ao Zabbix sejam removidos do sistema.
+- name: OS RedHat | Removendo repositórios Zabbix e Docker CE
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ repo_files }}"
+
+# Remove o pacote zabbix-release para garantir que os repositórios do Zabbix 
+# sejam removidos completamente do sistema.
+- name: OS RedHat | Removendo zabbix-release
+  ansible.builtin.dnf:
+    name: zabbix-release
+    state: absent
+
+# Limpa o cache do DNF para garantir que as alterações nos repositórios sejam 
+# refletidas, evitando que o sistema tente acessar repositórios que foram removidos.
+- name: OS RedHat | Limpando cache DNF
+  ansible.builtin.command:
+    cmd: dnf clean all
+  changed_when: false
+  when:
+    - not ansible_check_mode

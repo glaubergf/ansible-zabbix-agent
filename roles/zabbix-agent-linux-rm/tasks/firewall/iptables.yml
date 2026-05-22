@@ -1,0 +1,55 @@
+---
+# ====================================================================================
+# FIREWALL - IPTABLES
+# roles/zabbix-agent-linux-rm/tasks/firewall/iptables.yml
+# ====================================================================================
+
+# Remove a regra do iptables que libera a porta 10050, que é a porta padrão 
+# usada pelo Zabbix Agent para comunicação com o Zabbix Server.
+- name: IPTABLES | Removendo regra INPUT 10050 TCP do IPTables
+  ansible.builtin.command: >
+    iptables -D INPUT -p tcp --dport {{ zabbix_agent_port }} -j ACCEPT
+  register: iptables_rm
+  failed_when: false
+  changed_when: iptables_rm.rc == 0
+
+# Verifica se o iptables-persistent está instalado e configurado para salvar as regras,
+# verificando a existência do arquivo de regras. Isso é importante para garantir que as 
+# regras sejam removidas corretamente do arquivo de regras persistentes, caso o 
+# iptables-persistent esteja em uso.
+- name: IPTABLES | Verificando iptables persistent
+  ansible.builtin.stat:
+    path: /etc/iptables/rules.v4
+  register: iptables_persistent_file
+  failed_when: false
+
+# Remove a linha correspondente à porta 10050 do arquivo de regras do 
+# iptables-persistent, garantindo que a regra seja removida mesmo que o iptables-persistent 
+# esteja instalado e configurado para salvar as regras.
+- name: IPTABLES | Limpando regras persistentes
+  ansible.builtin.lineinfile:
+    path: /etc/iptables/rules.v4
+    regexp: 'dport {{ zabbix_agent_port }}'
+    state: absent
+  when:
+    - iptables_persistent_file is defined
+    - iptables_persistent_file.stat.exists | default(false)
+
+# Recarrega as regras do iptables para garantir que as alterações sejam aplicadas 
+# imediatamente. O comando netfilter-persistent reload é usado para recarregar as regras 
+# do iptables, mas isso só é necessário se o iptables-persistent estiver instalado e 
+# configurado para salvar as regras.
+- name: IPTABLES | Reload iptables
+  ansible.builtin.command: netfilter-persistent reload
+
+# Salva as regras do iptables para garantir que as alterações sejam persistentes após 
+# reinicialização do sistema. O comando iptables-save é usado para exportar as regras atuais 
+# do iptables para o arquivo de regras do iptables-persistent, mas isso só é feito se o 
+# arquivo existir.
+- name: IPTABLES | Salvando regras IPTables
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+  args:
+    executable: /bin/bash
+  when:
+    - iptables_persistent_file.stat.exists
+  changed_when: false

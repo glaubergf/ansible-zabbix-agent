@@ -1,0 +1,111 @@
+---
+# ====================================================================================
+# DOCKER
+# roles/zabbix-agent-linux-in/tasks/docker.yml
+# ====================================================================================
+
+# Instala Docker CE no RedHat (repo já deve existir em outra role)
+- name: DOCKER RedHat | Instalando Docker CE
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: true
+  when:
+    - linux_family_normalized == "RedHat"
+
+# Verifica plugin Docker para Zabbix Agent 2
+- name: DOCKER Debian/RedHat | Verificando docker.conf
+  ansible.builtin.stat:
+    path: "{{ zabbix_agent_docker_plugin_file }}"
+  register: docker_plugin
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Coleta estado dos serviços do sistema
+- name: DOCKER Debian/RedHat | Coletando informações de serviços
+  ansible.builtin.service_facts:
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Define se Docker está disponível no sistema
+- name: DOCKER Debian/RedHat | Verificando disponibilidade do Docker
+  ansible.builtin.set_fact:
+    docker_available: >-
+      {{
+        'docker.service' in ansible_facts.services and
+        ansible_facts.services['docker.service'].status != 'not-found'
+      }}
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Habilita Docker se estiver instalado
+- name: DOCKER Debian/RedHat | Habilitando Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+    - docker_available | bool
+
+# Verifica socket Docker (confirmação adicional)
+- name: DOCKER Debian/RedHat | Verificando socket Docker
+  ansible.builtin.stat:
+    path: /run/docker.sock
+  register: docker_socket
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+    - docker_available | bool
+
+# Habilita plugin Docker no Zabbix Agent 2
+- name: DOCKER Debian/RedHat | Habilitando plugin Docker
+  ansible.builtin.lineinfile:
+    path: "{{ zabbix_agent_docker_plugin_file }}"
+    regexp: '^#?\s*Plugins\.Docker\.Endpoint='
+    line: 'Plugins.Docker.Endpoint=unix:///run/docker.sock'
+    state: present
+    backup: true
+    create: false
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+    - docker_plugin.stat.exists
+    - docker_socket.stat is defined
+    - docker_socket.stat.exists | default(false)
+    - docker_available | bool
+  notify:
+    - HANDLER | Reiniciando zabbix agent
+
+# Verifica grupo docker
+- name: DOCKER Debian/RedHat | Verificando grupo docker
+  ansible.builtin.command: getent group docker
+  register: docker_group
+  changed_when: false
+  failed_when: false
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Verifica usuário zabbix
+- name: DOCKER Debian/RedHat | Verificando usuário zabbix
+  ansible.builtin.command: id zabbix
+  register: zabbix_user
+  changed_when: false
+  failed_when: false
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Adiciona usuário zabbix ao grupo docker
+- name: DOCKER Debian/RedHat | Adicionando usuário zabbix ao grupo docker
+  ansible.builtin.user:
+    name: zabbix
+    groups: docker
+    append: true
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+    - docker_group.rc == 0
+    - zabbix_user.rc == 0
+    - docker_available | bool
+  notify:
+    - HANDLER | Reiniciando zabbix agent

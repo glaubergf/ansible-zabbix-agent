@@ -1,0 +1,70 @@
+---
+# ====================================================================================
+# REPOSITÓRIOS
+# roles/zabbix-agent-linux-in/tasks/repo.yml
+# ====================================================================================
+
+# DEBIAN - Já possui pacotes oficiais do Zabbix, atualizar o cache.
+- name: REPO Debian | Atualizando cache apt
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  changed_when: false
+  when:
+    - linux_family_normalized == "Debian"
+
+# SUSE - Já possui pacotes oficiais do Zabbix, atualizar o cache.
+- name: REPO Suse | Atualizando cache zypper
+  ansible.builtin.command:
+    cmd: zypper refresh
+  changed_when: false
+  when:
+    - linux_family_normalized == "Suse"
+    - not ansible_check_mode
+
+# REDHAT - Adiciona repositório oficial do Zabbix.
+- name: REPO RedHat | Adicionando repositório Zabbix
+  ansible.builtin.dnf:
+    name: "{{ zabbix_repo_rpm }}"
+    state: present
+    disable_gpg_check: true
+  when:
+    - linux_family_normalized == "RedHat"
+
+# REDHAT - Adicionando repositório oficial do Docker CE.
+- name: REPO RedHat | Adicionando repositório Docker CE
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable
+    baseurl: "{{ docker_repo }}"
+    gpgcheck: true
+    gpgkey: "{{ docker_gpg_key }}"
+    enabled: true
+  when:
+    - linux_family_normalized == "RedHat"
+
+# REDHAT - Limpa cache dnf.
+- name: REPO RedHat | Limpando cache dnf
+  ansible.builtin.command:
+    cmd: dnf clean all
+  changed_when: false
+  when:
+    - linux_family_normalized == "RedHat"
+    - not ansible_check_mode
+
+# REDHAT - Recriando cache dnf.
+- name: REPO RedHat | Recriando cache dnf
+  ansible.builtin.command:
+    cmd: dnf makecache
+  changed_when: false
+  when:
+    - linux_family_normalized == "RedHat"
+    - not ansible_check_mode
+
+# REDHAT - Atualiza cache dnf para garantir que o novo repositório seja reconhecido.
+- name: REPO RedHat | Atualizando cache dnf
+  ansible.builtin.dnf:
+    update_cache: true
+  changed_when: false
+  when:
+    - linux_family_normalized == "RedHat"

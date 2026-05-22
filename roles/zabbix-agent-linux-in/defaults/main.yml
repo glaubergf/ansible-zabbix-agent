@@ -1,0 +1,48 @@
+---
+# ====================================================================================
+# VARIABLES
+# roles/zabbix-agent-linux-in/defaults/main.yml
+#
+# - Este arquivo contém as variáveis padrão para a role "zabbix-agent-linux-in".
+# - Ele define as configurações básicas para o agente Zabbix, como o endereço do servidor
+#   Zabbix, a porta de comunicação, o nome do host, o tempo limite e as URLs dos repositórios 
+#   necessários para a instalação do agente e do plugin Docker.
+#
+# OBS:
+# - O usuário pode sobrescrever essas variáveis em arquivos de inventário ou em arquivos de 
+#   variáveis específicos para hosts ou grupos, se necessário.
+# ====================================================================================
+
+# CONFIGURAÇÕES do Zabbix Agent
+zabbix_agent_log_file_size: 10
+zabbix_agent_server: 192.168.0.156
+zabbix_agent_server_active: 192.168.0.156
+zabbix_agent_port: 10050
+zabbix_agent_hostname: "{{ inventory_hostname }}"
+zabbix_agent_timeout: 10
+
+zabbix_agent_enable_docker: true
+
+# REPOSITÓRIO oficial do Zabbix para Redhat, necessário para instalar o agente Zabbix.
+zabbix_repo_rpm: https://repo.zabbix.com/zabbix/7.0/rhel/{{ ansible_distribution_major_version }}/x86_64/zabbix-release-latest.el{{ ansible_distribution_major_version }}.noarch.rpm
+
+# REPOSITÓRIO oficial do Docker CE para Redhat, necessário para instalar o plugin Docker.
+docker_repo: https://download.docker.com/linux/centos/9/x86_64/stable
+
+# CHAVE GPG oficial do Docker CE para Redhat, necessária para verificar a autenticidade dos pacotes do Docker.
+docker_gpg_key: https://download.docker.com/linux/centos/gpg
+
+# Porta SSH para o firewall.
+ufw_ssh_port: 22
+
+# Configurações de firewall para o agente Zabbix.
+zabbix_agent_manage_firewall: true
+
+# Não habilitar UFW automaticamente.
+zabbix_agent_enable_ufw: false
+
+# Serviço padrão do Zabbix Agent.
+zabbix_agent_service: zabbix-agent2
+
+# Pacote padrão fallback para o agente Zabbix, caso a detecção automática falhe.
+zabbix_agent_package: zabbix-agent2

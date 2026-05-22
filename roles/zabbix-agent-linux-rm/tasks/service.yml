@@ -1,0 +1,35 @@
+---
+# ====================================================================================
+# SERVIÇO
+# roles/zabbix-agent-linux-rm/tasks/service.yml
+# ====================================================================================
+
+# Detecta os nomes dos serviços do Zabbix Agent para parar e desabilitar.
+- name: SERV | Detectando serviço Zabbix Agent instalado
+  ansible.builtin.set_fact:
+    zabbix_agent_service_remove: >-
+      {{
+        'zabbix-agent2'
+        if 'zabbix-agent2.service' in ansible_facts.services
+        else (
+          'zabbix-agent'
+          if 'zabbix-agent.service' in ansible_facts.services
+          else (
+            'zabbix_agentd'
+            if 'zabbix_agentd.service' in ansible_facts.services
+            else ''
+          )
+        )
+      }}
+
+# Para o serviço do Zabbix Agent detectado, garantindo que o agente seja 
+# completamente parado e desabilitado para evitar que ele seja iniciado novamente 
+# na inicialização do sistema.
+- name: SERV | Parando serviço Zabbix Agent
+  ansible.builtin.systemd:
+    name: "{{ zabbix_agent_service_remove }}"
+    state: stopped
+    enabled: false
+  when:
+    - zabbix_agent_service_remove != ''
+  failed_when: false

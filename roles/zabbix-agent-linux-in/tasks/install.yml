@@ -1,0 +1,67 @@
+---
+# ====================================================================================
+# INSTALAÇÃO
+# roles/zabbix-agent-linux-in/tasks/install.yml
+# ====================================================================================
+
+# Instala zabbix-agent do repositório da distribuição
+- name: INST Suse | Instalando zabbix-agent do repositório da distribuição
+  community.general.zypper:
+    name: zabbix-agent
+    state: present
+  when: linux_family_normalized == "Suse"
+
+# Instala zabbix-agent2, se falhar, instala zabbix-agent (fallback)
+- name: INST Debian/RedHat | Instalando zabbix-agent2
+  ansible.builtin.package:
+    name: "{{ zabbix_agent_package }}"
+    state: present
+  register: zabbix_agent2_install
+  failed_when: false
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+
+# Fallback para zabbix-agent se a instalação do zabbix-agent2 falhar
+- name: INST Debian/RedHat | Instalando zabbix-agent fallback
+  ansible.builtin.package:
+    name: zabbix-agent
+    state: present
+  when:
+    - linux_family_normalized in ['Debian', 'RedHat']
+    - zabbix_agent2_install is failed | default(false)
+
+# Coleta facts de pacotes para garantir que o instalado seja detectado corretamente
+- name: INST Debian/RedHat | Coletando informações dos pacotes instalados
+  ansible.builtin.package_facts:
+    manager: auto
+
+# Detecta pacote instalado para uso em tarefas posteriores
+- name: INST Debian/RedHat | Detectando pacote instalado
+  ansible.builtin.set_fact:
+    zabbix_agent_package_detected: >-
+      {{
+        (
+          ansible_facts.packages.keys()
+          | select('match', '^zabbix-agent2')
+          | list
+          | first
+        )
+        | default(
+            (
+              ansible_facts.packages.keys()
+              | select('match', '^zabbix-agent')
+              | list
+              | first
+            ),
+            true
+          )
+        | default('', true)
+      }}
+
+# Falha se nenhum pacote Zabbix foi instalado
+- name: INST Fail | Nenhum pacote Zabbix foi instalado
+  ansible.builtin.fail:
+    msg: "Nenhum pacote Zabbix foi instalado."
+  when:
+    - not ansible_check_mode
+    - zabbix_agent_package_detected == ''

@@ -1,0 +1,56 @@
+---
+# ====================================================================================
+# PRÉ-REQUISITOS
+# roles/zabbix-agent-linux-in/tasks/prereq.yml
+# ====================================================================================
+
+# Define família normalizada.
+- name: PREREQ | Definindo família do sistema operacional normalizada
+  ansible.builtin.set_fact:
+    linux_family_normalized:
+      "{{ 
+        'Debian' if ansible_pkg_mgr == 'apt'
+         else 'RedHat' if ansible_pkg_mgr in ['dnf', 'yum']
+           else 'Suse' if ansible_pkg_mgr == 'zypper'
+             else 'Unknown'
+      }}"
+
+# Coletar informações dos serviços.
+- name: PREREQ | Coletando informações de serviços
+  ansible.builtin.service_facts:
+ 
+# Detecta backend de firewall ativo.
+- name: PREREQ | Detectando backend de firewall ativo
+  ansible.builtin.set_fact:
+    firewall_backend: >-
+      {{
+        'ufw'
+        if (
+          'ufw.service' in ansible_facts.services and
+          ansible_facts.services['ufw.service'].status != 'not-found'
+        )
+        else
+        'firewalld'
+        if (
+          'firewalld.service' in ansible_facts.services and
+          ansible_facts.services['firewalld.service'].status != 'not-found'
+        )
+        else
+        'iptables'
+      }}
+
+# Exibe informações do ambiente detectado.
+- name: PREREQ | Exibindo ambiente detectado
+  ansible.builtin.debug:
+    msg:
+      - "distribution: {{ ansible_distribution }}"
+      - "version: {{ ansible_distribution_version }}"
+      #- "os_family: {{ ansible_os_family }}"
+      #- "pkg_mgr: {{ ansible_pkg_mgr }}"
+      - "linux_family_normalized: {{ linux_family_normalized }}"
+      - "firewall_backend: {{ firewall_backend }}"
+
+# Carregar variáveis específicas da distribuição
+- name: PREREQ | Carregando variáveis da distribuição
+  ansible.builtin.include_vars:
+    file: "{{ linux_family_normalized | lower }}.yml"

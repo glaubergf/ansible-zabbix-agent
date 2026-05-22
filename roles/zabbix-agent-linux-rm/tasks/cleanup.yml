@@ -1,0 +1,22 @@
+---
+# ====================================================================================
+# LIMPEZA - REMOÇÃO DE RESÍDUOS
+# roles/zabbix-agent-linux-rm/tasks/cleanup.yml
+# ====================================================================================
+
+# Remove o diretório /etc/zabbix, que é o local onde as configurações do Zabbix Agent 
+# são armazenadas.
+- name: CLEANUP | Removendo diretório /etc/zabbix
+  ansible.builtin.file:
+    path: /etc/zabbix
+    state: absent
+
+# Remove os diretórios residuais do Zabbix, como /var/log/zabbix e /var/lib/zabbix, 
+# que podem conter dados obsoletos ou configurações não utilizadas.
+- name: CLEANUP | Removendo diretórios residuais Zabbix
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/log/zabbix
+    - /var/lib/zabbix

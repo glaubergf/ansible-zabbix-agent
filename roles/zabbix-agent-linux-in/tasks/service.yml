@@ -1,0 +1,73 @@
+---
+# ====================================================================================
+# SERVIÇO
+# roles/zabbix-agent-linux-in/tasks/service.yml
+# ====================================================================================
+
+# Coletar informações dos serviços
+- name: SERV | Atualizando informações de serviços
+  ansible.builtin.service_facts:
+
+# Detecta serviço do Zabbix Agent para habilitar e iniciar.
+- name: SERV | Detectando serviço do Zabbix Agent
+  ansible.builtin.set_fact:
+    zabbix_agent_service: >-
+      {{
+        'zabbix-agent2'
+         if 'zabbix-agent2.service' in ansible_facts.services
+        else (
+          'zabbix-agent'
+          if 'zabbix-agent.service' in ansible_facts.services
+          else (
+            'zabbix_agentd'
+            if 'zabbix_agentd.service' in ansible_facts.services
+            else ''
+          )
+        )
+      }}
+
+# Falha se nenhum serviço do Zabbix Agent for detectado, pois isso indica que o agente 
+# pode não ter sido instalado corretamente ou que o serviço tem um nome inesperado. 
+- name: SERV | Falha se nenhum serviço do Zabbix Agent foi detectado
+  ansible.builtin.fail:
+    msg: "Nenhum serviço Zabbix detectado"
+  when: 
+    - zabbix_agent_service == ''
+    - not ansible_check_mode
+
+# Exibindo serviço detectado para garantir que a variável foi definida corretamente 
+# antes de tentar habilitar o serviço e iniciar o agente. 
+- name: SERV | Exibindo serviços detectados
+  ansible.builtin.debug:
+    msg: "Serviço detectado: {{ zabbix_agent_service }}"
+
+# Valida configuração do Zabbix Agent antes de habilitar e iniciar o serviço para evitar 
+# que o agente falhe ao iniciar devido a uma configuração inválida.
+- name: SERV | Validando configuração do Zabbix antes de aplicar
+  ansible.builtin.command: >
+    {{
+      'zabbix_agent2 -T'
+      if zabbix_agent_service == 'zabbix-agent2'
+      else 'zabbix_agentd -t agent.ping'
+    }}
+    -c {{ zabbix_agent_config_file }}
+  changed_when: false
+  register: zabbix_agent_config_validation
+  failed_when: zabbix_agent_config_validation.rc != 0
+  
+# Define status da configuração com base no resultado da validação para garantir que o 
+# serviço só seja habilitado e iniciado se a configuração for válida, evitando falhas 
+# no serviço  devido a erros de configuração.
+- name: SERV | Definindo status da configuração
+  ansible.builtin.set_fact:
+    zabbix_agent_config_valid: "{{ zabbix_agent_config_validation.rc == 0 }}"
+
+# Habilita serviço Zabbix Agent para iniciar na inicialização do sistema e garante que o 
+# serviço esteja em execução.
+- name: SERV | Habilitando serviço Zabbix
+  ansible.builtin.systemd:
+    name: "{{ zabbix_agent_service }}"
+    enabled: true
+    state: started
+  when:
+    - zabbix_agent_config_valid

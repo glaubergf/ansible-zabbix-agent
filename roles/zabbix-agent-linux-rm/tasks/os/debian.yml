@@ -1,0 +1,26 @@
+---
+# ====================================================================================
+# DEBIAN - REMOÇÃO DO ZABBIX AGENT
+# roles/zabbix-agent-linux-rm/tasks/os/debian.yml
+# ====================================================================================
+
+# Remove os pacotes zabbix-agent e zabbix-agent2, garantindo que ambos sejam 
+# desinstalados, independentemente de qual versão do agente estava instalada. 
+# A opção `purge: true` é usada para remover completamente os arquivos de configuração 
+# associados aos pacotes, garantindo que não haja vestígios do agente Zabbix após a 
+# desinstalação.
+- name: OS Debian | Purge residual de configs do zabbix-agent
+  ansible.builtin.apt:
+    name:
+      - zabbix-agent
+      - zabbix-agent2
+    state: absent
+    purge: true
+
+# Limpa o cache do APT para garantir que as informações sobre os pacotes sejam 
+# atualizadas, evitando que o sistema tente acessar pacotes ou repositórios que foram 
+# removidos.
+- name: OS Debian | Limpando cache APT
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600

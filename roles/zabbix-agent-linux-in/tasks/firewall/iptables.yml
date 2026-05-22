@@ -1,0 +1,39 @@
+---
+# ====================================================================================
+# FIREWALL - IPTABLES
+# roles/zabbix-agent-linux-in/tasks/firewall/iptables.yml
+# ====================================================================================
+
+# Instala iptables-persistent.
+- name: IPTABLES | Instalando iptables-persistent
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+    update_cache: true
+
+# Libera porta 10050.
+- name: IPTABLES | Liberando porta 10050
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ zabbix_agent_port }}"
+    ctstate: NEW
+    jump: ACCEPT
+    state: present
+  ignore_errors: true
+
+# Verifica arquivo rules.v4.
+- name: IPTABLES | Verificando arquivo rules.v4
+  ansible.builtin.stat:
+    path: /etc/iptables/rules.v4
+  register: iptables_rules
+
+# Salva regras persistentes.
+- name: IPTABLES | Salvando regras
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+  args:
+    executable: /bin/bash
+  when:
+    - iptables_rules.stat.exists
+    - not ansible_check_mode
+  changed_when: false

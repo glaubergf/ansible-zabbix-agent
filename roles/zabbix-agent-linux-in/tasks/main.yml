@@ -1,0 +1,77 @@
+---
+# ==========================================================================
+# TAREFA PRINCIPAL - STEP TO STEP
+# roles/zabbix-agent-linux-in/tasks/main.yml
+#
+# - Este arquivo contém as tarefas principais para a role "zabbix-agent-linux-in".
+# - É responsável por instalar e configurar o agente Zabbix em hosts Linux.
+# - Ele inclui tarefas para garantir que o agente Zabbix seja instalado corretamente,
+#   configurado para se comunicar com o servidor Zabbix e, opcionalmente,
+#   configurado para monitorar contêineres Docker, se habilitado.
+# - As tarefas são organizadas em etapas lógicas, começando com a instalação dos 
+#   pré-requisitos,seguida pela configuração dos repositórios, instalação do agente, 
+#   configuração do serviço,configuração do plugin Docker (se habilitado), configuração 
+#   do agente e, finalmente,configuração do firewall para permitir a comunicação com o 
+#   servidor Zabbix.
+# ==========================================================================
+
+# PREREQ
+- name: Pré-requisitos
+  ansible.builtin.import_tasks: prereq.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-prereq
+    - zbx-agt-in-repo
+    - zbx-agt-in-install
+    - zbx-agt-in-config
+    - zbx-agt-in-firewall
+    - zbx-agt-in-ufw
+    - zbx-agt-in-firewalld
+    - zbx-agt-in-iptables
+    - zbx-agt-in-docker
+    - zbx-agt-in-service
+
+# REPO
+- name: Configurando repositórios
+  ansible.builtin.import_tasks: repo.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-repo
+
+# INST
+- name: Instalando Zabbix Agent
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-install
+
+# CONFIG
+- name: Configurando Zabbix Agent
+  ansible.builtin.import_tasks: config.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-config
+
+# FIREWALL
+- name: Configurando firewall
+  ansible.builtin.import_tasks: firewall.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-firewall
+    - zbx-agt-in-ufw
+    - zbx-agt-in-firewalld
+    - zbx-agt-in-iptables
+
+# DOCKER
+- name: Configurando plugin Docker
+  ansible.builtin.import_tasks: docker.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-docker
+
+# SERV
+- name: Detectando e configurando serviço
+  ansible.builtin.import_tasks: service.yml
+  tags:
+    - zbx-agt-in
+    - zbx-agt-in-service

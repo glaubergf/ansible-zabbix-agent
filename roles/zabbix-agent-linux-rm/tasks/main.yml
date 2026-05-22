@@ -1,0 +1,68 @@
+---
+# ==========================================================================
+# TAREFA PRINCIPAL - STEP TO STEP
+# roles/zabbix-agent-linux-rm/tasks/main.yml
+#
+# - Este arquivo contém as tarefas principais para a role "zabbix-agent-linux-rm".
+# - É responsável por remover instalações existentes do agente Zabbix em hosts Linux.
+# - Ele inclui tarefas para garantir que o agente Zabbix seja removido corretamente,
+#   limpando quaisquer configurações ou arquivos associados.
+# - As tarefas são organizadas em etapas lógicas, começando com a execução dos 
+#   pré-requisitos,seguida pela parada do serviço, remoção dos pacotes, configuração 
+#   do firewall para bloquear a porta do agente Zabbix, execução de tarefas específicas 
+#   para cada distribuição Linux e, finalmente, uma limpeza final para garantir que 
+#   todos os vestígios do agente Zabbix sejam removidos.
+# ==========================================================================
+
+# PREREQ
+- name: Pré-requisitos
+  ansible.builtin.import_tasks: prereq.yml
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-prereq
+    - zbx-agt-rm-remove
+    - zbx-agt-rm-firewall
+    - zbx-agt-rm-ufw
+    - zbx-agt-rm-firewalld
+    - zbx-agt-rm-iptables
+    - zbx-agt-rm-service
+    - zbx-agt-rm-cleanup
+    - zbx-agt-rm-os
+
+# SERV
+- name: Configuração de Serviços
+  ansible.builtin.import_tasks: service.yml
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-service
+
+# REMOVE
+- name: Remoção de pacotes
+  ansible.builtin.import_tasks: remove.yml
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-remove
+
+# FIREWALL
+- name: Configuração do Firewall
+  ansible.builtin.import_tasks: firewall.yml
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-firewall
+    - zbx-agt-rm-ufw
+    - zbx-agt-rm-firewalld
+    - zbx-agt-rm-iptables
+
+# OS
+- name: Tarefas específicas da distro
+  ansible.builtin.include_tasks: "os/{{ linux_family_normalized | lower }}.yml"
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-os
+
+# CLEANUP
+- name: Limpeza final
+  ansible.builtin.import_tasks: cleanup.yml
+  tags:
+    - zbx-agt-rm
+    - zbx-agt-rm-cleanup

@@ -1,42 +1,52 @@
-# --- HOSTS --- #
-# --- server rockylinux (tf-kvm-elk)
-[elk_zabbix_agent]
-tf-kvm-elk ansible_host="{{ elk_public_ip }}"
+# ===============================================================
+# INVENTÁRIO DE HOSTS E GRUPOS
+# hosts.yml
+# ===============================================================
 
-# --- client debian (sup)
-[sup_zabbix_agent]
-sup ansible_host="{{ sup_public_ip }}"
+####################
+# HOSTS
+####################
 
-# --- client opensuse (opensuse)
+# Debian Stable (VM KVM)
+[debian_zabbix_agent]
+kvm-debian ansible_host="{{ kvm_debian_public_ip }}"
+
+# OpenSUSE Leap (VM KVM)
 [opensuse_zabbix_agent]
-opensuse ansible_host="{{ opensuse_public_ip }}"
+kvm-opensuse ansible_host="{{ kvm_opensuse_public_ip }}"
 
-# --- client debian (cockpit)
-[cockpit_zabbix_agent]
-tf-kvm-cockpit ansible_host="{{ cockpit_public_ip }}"
+# Rocky 9 (VM KVM)
+[rocky_zabbix_agent]
+kvm-rocky ansible_host="{{ kvm_rocky_public_ip }}"
 
+# Zorin OS 18 (VM KVM)
+[zorin_zabbix_agent]
+kvm-zorin ansible_host="{{ kvm_zorin_public_ip }}"
 
-# --- VARIABLES --- #
-# --- server rockylinux (tf-kvm-elk)
-[elk_zabbix_agent:vars]
-ansible_user = "{{ elk_ansible_user }}" 
-ansible_password = "{{ elk_ansible_password }}"
-ansible_become_password = "{{ elk_ansible_become_password }}"
+####################
+# VARIÁVEIS DE HOSTS
+####################
 
-# --- client Debian (sup)
-[sup_zabbix_agent:vars]
-ansible_user = "{{ sup_ansible_user }}" 
-ansible_password = "{{ sup_ansible_password }}"
-ansible_become_password = "{{ sup_ansible_become_password }}"
+# Debian Stable (VM KVM)
+[debian_zabbix_agent:vars]
+ansible_user = "{{ kvm_debian_ansible_user }}" 
+ansible_password = "{{ kvm_debian_ansible_password }}"
+ansible_become_password = "{{ kvm_debian_ansible_become_password }}"
 
-# --- client opensuse (opensuse)
+# OpenSUSE Leap (VM KVM)
 [opensuse_zabbix_agent:vars]
-ansible_user = "{{ opensuse_ansible_user }}" 
-ansible_password = "{{ opensuse_ansible_password }}"
-ansible_become_password = "{{ opensuse_ansible_become_password }}"
+ansible_user = "{{ kvm_opensuse_ansible_user }}" 
+ansible_password = "{{ kvm_opensuse_ansible_password }}"
+ansible_become_password = "{{ kvm_opensuse_ansible_become_password }}"
 
-# --- client debian (cockpit)
-[cockpit_zabbix_agent:vars]
-ansible_user = "{{ cockpit_ansible_user }}" 
-ansible_password = "{{ cockpit_ansible_password }}"
-ansible_become_password = "{{ cockpit_ansible_become_password }}"
+# Rocky 9 (VM KVM)
+[rocky_zabbix_agent:vars]
+ansible_user = "{{ kvm_rocky_ansible_user }}" 
+ansible_password = "{{ kvm_rocky_ansible_password }}"
+ansible_become_password = "{{ kvm_rocky_ansible_become_password }}"
+
+# Zorin OS 18 (VM KVM)
+[zorin_zabbix_agent:vars]
+ansible_user = "{{ kvm_zorin_ansible_user }}" 
+ansible_password = "{{ kvm_zorin_ansible_password }}"
+ansible_become_password = "{{ kvm_zorin_ansible_become_password }}"

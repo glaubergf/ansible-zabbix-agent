@@ -1,24 +1,34 @@
 ---
-# --- server rockylinux (tf-kvm-elk)
-elk_public_ip : 192.100.20.200
-elk_ansible_user : elk
-elk_ansible_password : xxxxxxxxx
-elk_ansible_become_password : xxxxxxxxx
+# ==========================================================================
+# VARIÁVEIS GLOBAIS PARA O ANSIBLE
+# group_vars/all.yml
+#
+# - Este arquivo contém variáveis globais para o Ansible, que podem ser usadas 
+#   em todos os hosts e grupos definidos no arquivo de inventário.
+# - As variáveis são organizadas por host ou grupo de hosts, permitindo que as 
+#   configurações sejam facilmente localizadas e modificadas conforme necessário.
+# ==========================================================================
 
-# --- client debian (sup)
-sup_public_ip : 192.100.10.150
-sup_ansible_user : mcnd2
-sup_ansible_password : xxxxxxxxx
-sup_ansible_become_password : xxxxxxxxx
+# Debian Stable (VM KVM)
+kvm_debian_public_ip : 192.168.0.101
+kvm_debian_ansible_user : user
+kvm_debian_ansible_password : senha-user
+kvm_debian_ansible_become_password : senha-user
 
-# --- client opensuse (opensuse)
-opensuse_public_ip : 192.100.10.206
-opensuse_ansible_user : mcnd2
-opensuse_ansible_password : xxxxxxxxx
-opensuse_ansible_become_password : xxxxxxxxx
+# OpenSUSE Leap (VM KVM)
+kvm_opensuse_public_ip : 192.168.0.102
+kvm_opensuse_ansible_user : user
+kvm_opensuse_ansible_password : senha-user
+kvm_opensuse_ansible_become_password : senha-user
 
-# --- client debian (cockpit)
-cockpit_public_ip : 192.100.20.100
-cockpit_ansible_user : cockpit
-cockpit_ansible_password : xxxxxxxxx
-cockpit_ansible_become_password : xxxxxxxxx
+# Rocky 9 (VM KVM)
+kvm_rocky_public_ip : 192.168.0.103
+kvm_rocky_ansible_user : user
+kvm_rocky_ansible_password : senha-user
+kvm_rocky_ansible_become_password : senha-user
+
+# Zorin OS 18 (VM KVM)
+kvm_zorin_public_ip : 192.168.0.104
+kvm_zorin_ansible_user : user
+kvm_zorin_ansible_password : senha-user
+kvm_zorin_ansible_become_password : senha-user

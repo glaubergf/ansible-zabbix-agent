@@ -1,0 +1,13 @@
+---
+# ====================================================================================
+# SUSE - REMOÇÃO DO ZABBIX AGENT
+# roles/zabbix-agent-linux-rm/tasks/os/suse.yml
+# ====================================================================================
+
+# Limpa cache do zypper para garantir que as informações sobre os pacotes sejam 
+# atualizadas, evitando que o sistema tente acessar pacotes ou repositórios que foram 
+# removidos.
+- name: OS Suse | Limpando cache Zypper
+  ansible.builtin.command:
+    cmd: zypper clean --all
+  changed_when: false

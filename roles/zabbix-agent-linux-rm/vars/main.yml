@@ -1,0 +1,21 @@
+---
+# ====================================================================================
+# VARIABLES
+# roles/zabbix-agent-linux-rm/vars/main.yml
+#
+# - Este arquivo contém as variáveis específicas para a role "zabbix-agent-linux-rm",
+#   que é responsável por desinstalar o agente Zabbix em hosts Linux.
+# - Ele define a porta do firewall para o serviço do agente Zabbix e os arquivos de 
+#   repositório do Zabbix que devem ser removidos durante a desinstalação do agente.
+# ====================================================================================
+
+# DEBIAN / SUSE / REDHAT
+# Porta do firewall para o serviço do agente Zabbix.
+zabbix_agent_port: "10050"
+
+# REDHAT
+# Arquivos de repositório do Zabbix a serem removidos durante a desinstalação do agente.
+repo_files:
+  - /etc/yum.repos.d/zabbix.repo
+  - /etc/yum.repos.d/zabbix-tools.repo
+  - /etc/yum.repos.d/docker-ce-stable.repo
